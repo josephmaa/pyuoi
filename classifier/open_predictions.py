@@ -1,15 +1,14 @@
 import argparse
-from tkinter import N
-from turtle import color
 import numpy as np
 from numpy.lib.npyio import NpzFile
+from numpy import nan_to_num
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+from pandas import DataFrame
 from sklearn.model_selection import train_test_split
-from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import label_binarize
 from sklearn.metrics import ConfusionMatrixDisplay, auc, PrecisionRecallDisplay, roc_curve
-from sklearn.svm import LinearSVC
+from collections import Counter
 import pickle
 import os
 import sys
@@ -146,14 +145,20 @@ def main(parsed_args: argparse.Namespace, debug: bool = False):
                 prediction_probabilities = read_numpy_binary_array(
                     attributes=attributes, key="prediction_probabilities", dtype=np.float64)
 
-                with open(attributes['label_encoder'], 'rb') as label_encoder_pickle_file:
-                    label_encoder = pickle.load(label_encoder_pickle_file)
-
                 classes = np.unique(expected)
                 n_classes = len(np.unique(expected))
 
                 x = label_binarize(expected, classes=classes)
                 y = label_binarize(predicted, classes=classes)
+
+                with open(attributes['label_encoder'], 'rb') as label_encoder_pickle_file:
+                    label_encoder = pickle.load(label_encoder_pickle_file)
+                    behaviors = list(label_encoder.inverse_transform(predicted))
+                    test = {p: b for p, b in zip(predicted, behaviors)}
+                    counter = Counter()
+                    for p in predicted:
+                        counter[p] += 1
+                    print(test, counter)
 
                 x_train, x_test, y_train, y_test = train_test_split(
                     x, y, test_size=0.33, random_state=0)
@@ -165,41 +170,70 @@ def main(parsed_args: argparse.Namespace, debug: bool = False):
                 fpr, tpr, roc_auc = {}, {}, {}
                 print(f'There are {n_classes} classes')
                 for i in range(n_classes):
+                    if sum(y_test[:, i]) == 0:
+                        continue
+                    print(f'counts of y_test {i}: {Counter(y_test[:, i])}')
                     print(f'predicted instances: {y_test[:, i]}')
                     print(f'probabilities of y {y_test[:, i]}')
                     plt.figure()
+                    # Add fixed width bar.
                     plt.title(
-                        'Predicted instances of simulated data from a single class')
+                        f'Predicted instances of simulated data from a single class {i}')
                     plt.bar(range(len(y_test)), y_test[:, i])
-                    plt.show()
+                    # plt.show()
+
                     plt.figure()
                     plt.title(
-                        'Predicted probabilities for simulated data from a single class')
+                        f'Predicted probabilities for simulated data from a single class {i}')
                     plt.bar(range(len(y_test)), probabilities_y_test[:, i])
-                    plt.show()
+                    # plt.show()
                     if debug:
                         with np.printoptions(threshold=np.inf):
                             print(fpr, tpr)
                     fpr[i], tpr[i], thresholds = roc_curve(
                         y_test[:, i], probabilities_y_test[:, i], drop_intermediate=False)
-                    print(f'Thresholds: {thresholds}')
-                    plt.figure()
+
+                    display = PrecisionRecallDisplay.from_predictions(
+                        y_test[:, i], probabilities_y_test[:,
+                                                           i], name="PyUOI classifier"
+                    )
+
+                    import pandas as pd
+
+                    print(
+                        f'y_test: {y_test[:, i]}, {probabilities_y_test[:, i]}')
+                    _ = display.ax_.set_title(
+                        f"2-class Precision-Recall curve for class {i}")
+
+                    df = pd.DataFrame()
+                    df['y_test'] = y_test[:, i]
+                    df['probabilities_y_test'] = probabilities_y_test[:, i]
+                    df.sort_values('probabilities_y_test',
+                                   inplace=True, ascending=False)
+                    df.plot(x='y_test',
+                            y='probabilities_y_test', kind='bar')
                     plt.title(
-                        'Automatically generated thresholds by sklearn')
-                    plt.bar(range(len(y_test) + 1), thresholds)
+                        f"2-class sorted probabilities for Precision-Recall curve for class {i}")
+                    print(f'head: {df.head(30)}')
                     plt.show()
-                    roc_auc[i] = auc(fpr[i], tpr[i])
-                    print(f'fpr: {fpr} \ntpr: {tpr}')
-                    plt.figure()
-                    plt.title(
-                        'FPR and TPR calculations for simulated data from a single class')
-                    plt.bar(range(len(y_test) + 1),
-                            fpr[i], color='r', alpha=0.5, label="fpr")
-                    plt.bar(range(len(y_test) + 1),
-                            tpr[i], color='g', alpha=0.5, label="tpr")
-                    plt.legend()
-                    plt.show()
-                    break
+
+                    # print(f'Thresholds: {thresholds}')
+                    # plt.figure()
+                    # plt.title(
+                    #     'Automatically generated thresholds by sklearn')
+                    # plt.bar(range(len(y_test) + 1), thresholds)
+                    # # plt.show()
+                    # roc_auc[i] = auc(fpr[i], tpr[i])
+                    # print(f'fpr: {fpr} \ntpr: {tpr}')
+                    # plt.figure()
+                    # plt.title(
+                    #     'FPR and TPR calculations for simulated data from a single class')
+                    # plt.bar(range(len(y_test) + 1),
+                    #         fpr[i], color='r', alpha=0.5, label="fpr")
+                    # plt.bar(range(len(y_test) + 1),
+                    #         tpr[i], color='g', alpha=0.5, label="tpr")
+                    # plt.legend()
+                    # # plt.show()
                 if not parsed_args.output_graphs:
                     ConfusionMatrixDisplay.from_predictions(expected, predicted)
                     plt.show()
@@ -207,27 +241,27 @@ def main(parsed_args: argparse.Namespace, debug: bool = False):
                 # Plot of a ROC curve for a specific class
                 for i in range(n_classes):
                     # Display only if the class is predicted at least once
-                    if sum(y_test[:, i] >= 1):
-                        plt.figure()
-                        plt.plot(fpr[i], tpr[i],
-                                 label='ROC curve from pyuoi (area = %0.5f)' % roc_auc[i])
-                        plt.plot([0, 1], [0, 1], 'k--')
-                        plt.xlim([0.0, 1.0])
-                        plt.ylim([0.0, 1.05])
-                        plt.xlabel('False Positive Rate')
-                        plt.ylabel('True Positive Rate')
-                        # TODO(Joseph): Add the features that generate the ROC curves
-                        plt.title(
-                            f'Receiver operating characteristic {label_encoder.inverse_transform(np.array([classes[i]]))}')
-                        plt.legend(loc="lower right")
-                        if parsed_args.output_graphs:
-                            print(
-                                f"Save ROC curves to: {os.path.join('/Users/josephgmaa/pyuoi/pyuoi/data/features/PCs/roc_curves', os.path.basename(parsed_args.input_file))}_{i}_ROC_curve.png")
-                            plt.savefig(
-                                f"{os.path.join('/Users/josephgmaa/pyuoi/pyuoi/data/features/PCs/roc_curves', os.path.basename(parsed_args.input_file))}_{i}_ROC_curve.png")
-                        else:
-                            plt.show()
-                        break
+                    if sum(y_test[:, i]) == 0:
+                        continue
+                    plt.figure()
+                    plt.plot(fpr[i], tpr[i],
+                             label='ROC curve from pyuoi (area = %0.5f)' % roc_auc[i])
+                    plt.plot([0, 1], [0, 1], 'k--')
+                    plt.xlim([0.0, 1.0])
+                    plt.ylim([0.0, 1.05])
+                    plt.xlabel('False Positive Rate')
+                    plt.ylabel('True Positive Rate')
+                    # TODO(Joseph): Add the features that generate the ROC curves
+                    plt.title(
+                        f'Receiver operating characteristic {label_encoder.inverse_transform(np.array([classes[i]]))}')
+                    plt.legend(loc="lower right")
+                    if parsed_args.output_graphs:
+                        print(
+                            f"Save ROC curves to: {os.path.join('/Users/josephgmaa/pyuoi/pyuoi/data/features/PCs/roc_curves', os.path.basename(parsed_args.input_file))}_{i}_ROC_curve.png")
+                        plt.savefig(
+                            f"{os.path.join('/Users/josephgmaa/pyuoi/pyuoi/data/features/PCs/roc_curves', os.path.basename(parsed_args.input_file))}_{i}_ROC_curve.png")
+                    else:
+                        plt.show()
 
 
 if __name__ == "__main__":

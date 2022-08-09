@@ -7,7 +7,6 @@ from scipy.special import rel_entr
 from scipy.spatial.distance import jensenshannon
 from pyuoi.datasets import make_classification
 from itertools import combinations
-import matplotlib.pyplot as plt
 import os
 import pickle
 import xarray as xr
@@ -134,7 +133,7 @@ def main(parsed_args: argparse.Namespace):
             print(
                 f'Label encoder written to {le_filename}.')
 
-            #TODO(Joseph): Double check that the model performs poorly using combinations of PCs that weren't originally used to make the model. Should do some reading on shuffling to generate a null distribution.
+            # TODO(Joseph): Double check that the model performs poorly using combinations of PCs that weren't originally used to make the model. Should do some reading on shuffling to generate a null distribution.
             dump_json(model=l1log, filename=filename,
                       results={"accuracy": accuracy,
                                "coefficients": l1log.coef_,
@@ -150,7 +149,9 @@ def main(parsed_args: argparse.Namespace):
                                "input_files": parsed_args.input_files,
                                "column_names": parsed_args.column_names,
                                "label_encoder": le_filename,
-                               "train_test_split_seed": parsed_args.training_seed, "l1log_seed": parsed_args.model_seed})
+                               "train_test_split_seed": parsed_args.training_seed,
+                               "l1log_seed": parsed_args.model_seed,
+                               "model": l1log})
         return
     else:
         df = pd.DataFrame()
@@ -219,7 +220,8 @@ def main(parsed_args: argparse.Namespace):
                            "input_files": parsed_args.input_files,
                            "column_names": parsed_args.column_names,
                            "label_encoder": le_filename,
-                           "train_test_split_seed": parsed_args.training_seed, "l1log_seed": parsed_args.model_seed})
+                           "train_test_split_seed": parsed_args.training_seed, "l1log_seed": parsed_args.model_seed,
+                           "model": l1log})
 
     write_timestamped_numpy_binary(filename=filename, data=y_hat)
 
