@@ -240,7 +240,7 @@ def main(parsed_args: argparse.Namespace):
     print(f"Accuracy: {accuracy}")
     print(f"Resulting values: {y_hat}")
 
-    filename = "~/pyuoi/data/features/run_parameters/run_parameters"
+    filename = "./pyuoi/data/features/run_parameters/run_parameters"
 
     if parsed_args.dump:
         # Dump the associated label encoder.

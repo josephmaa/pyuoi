@@ -321,7 +321,7 @@ class AbstractUoILinearModel(SparseCoefMixin, metaclass=_abc.ABCMeta):
             )
 
         write_timestamped_numpy_binary(
-            filename="~/pyuoi/data/features/coefficients/coefficients",
+            filename="./pyuoi/data/features/coefficients/coefficients",
             x_coefficients=np.array(x_linear_coefficients),
             y_coefficients=np.array(y_linear_coefficients),
         )
