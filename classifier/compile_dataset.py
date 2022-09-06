@@ -13,7 +13,7 @@ def initialize_arg_parser():
     parser.add_argument(
         "--input_directory",
         help="Path to the input directory. Assumes that all .netcdf files in the directory will be used for the final dataset",
-        default="/Users/josephgmaa/pyuoi/features.all",
+        default="features.all",
     )
     parser.add_argument(
         "--output_files",
