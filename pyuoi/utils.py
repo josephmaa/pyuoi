@@ -5,6 +5,7 @@ import os
 import time
 import json
 import base64
+import pickle
 
 
 def softmax(y, axis=-1):
@@ -168,7 +169,7 @@ def is_json_serializable(object: any) -> bool:
 
 def dump_json(model: "AbstractUoILinearModel", filename: str, results: dict) -> None:
     """
-    Writes out all model values to JSON.
+    Writes out all model values that can be written to JSON to JSON. Numpy arrays are encoded as base64 strings and the model is dumped to a .sav pickle file.
     """
     dirname, basename = os.path.dirname(filename), os.path.basename(
         filename)
@@ -182,6 +183,12 @@ def dump_json(model: "AbstractUoILinearModel", filename: str, results: dict) -> 
                     # Encode arrays as base64 strings.
                     json_dump[key] = (val.shape, str(
                         base64.b64encode(val), 'utf-8'))
+                elif key == "model":
+                    filename = generate_timestamp_filename(
+                        dirname=dirname, basename="", file_format="sav")
+                    with open(filename, 'wb') as f:
+                        pickle.dump(model, f)
+                        json_dump[key] = filename
         print(
             f"JSON attributes written to {generate_timestamp_filename(dirname=dirname, basename=basename, file_format='.json')}.")
         json.dump(json_dump, file, sort_keys=True, indent=4)
