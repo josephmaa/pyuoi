@@ -109,3 +109,7 @@ ENV/
 
 # lbfgs solver stuff
 pyuoi/lbfgs/_lowlevel.c
+
+# data
+features.all
+pyuoi/data/features
