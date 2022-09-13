@@ -5,11 +5,10 @@ import pathlib
 import shutil
 
 TMP_DIR = "tmp/nested_tmp"
-_OBJECT_LOGGING_DIR = "tmp_object_logging_dir"
 
 
 def object_logging_dir():
-    return os.path.join(TMP_DIR, _OBJECT_LOGGING_DIR)
+    return os.path.join(TMP_DIR)
 
 
 def create_temp_dir():

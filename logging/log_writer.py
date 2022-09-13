@@ -22,4 +22,4 @@ class DatasetLog:
     def read(input_file_path: str):
         if not input_file_path.endswith(".txt"):
             raise NotImplementedError("Input file must be a text file.")
-        return pd.read_csv(input_file_path)
+        return pd.read_csv(input_file_path, index_col=0)

@@ -4,19 +4,19 @@ import os
 import sys
 
 from logging.log_writer import DatasetLog
-from logging.test_utils import create_temp_dir, delete_temp_dir, object_logging_dir
+import logging.test_utils 
 from parameterized import parameterized
 
 class TestLogWriter(unittest.TestCase):
     def setUp(self):
-        create_temp_dir()
+        logging.test_utils.create_temp_dir()
 
     def tearDown(self):
-        delete_temp_dir()
+        logging.test_utils.delete_temp_dir()
 
     @parameterized.expand(
         [
-            {"col1": [0, 1, 2, 3], "col2": pd.Series([2, 3], index=[2, 3])},
+            ({"col1": [0, 1, 2, 3], "col2": pd.Series([2, 3], index=[2, 3])},),
         ]
     )
     def test_log_writer(self, df: pd.DataFrame):
@@ -39,11 +39,11 @@ class TestLogWriter(unittest.TestCase):
         """
         expected_df = pd.DataFrame(data=df, index=[0, 1, 2, 3])
 
-        log = DatasetLog(df)
-        log.write(object_logging_dir(), "log1.txt")
+        log = DatasetLog(expected_df)
+        log.write(os.path.join(os.getcwd(), logging.test_utils.object_logging_dir()), "log1.txt")
 
         output_df = DatasetLog.read(
-            os.path.join(object_logging_dir, "log1.txt")
+            os.path.join(os.path.join(os.getcwd(), logging.test_utils.object_logging_dir()), "log1.txt")
         )
 
         self.assertTrue(pd.DataFrame.equals(expected_df, output_df))
