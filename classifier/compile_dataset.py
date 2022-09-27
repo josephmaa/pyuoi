@@ -30,16 +30,12 @@ def initialize_arg_parser():
 def main():
     parser = initialize_arg_parser()
     ps = parser.parse_args(sys.argv[1:])
-    ds = Dataset()
-    df = pd.DataFrame()
     num_files = len(os.listdir(ps.input_directory))
 
     time = str(datetime.datetime.now().strftime("%Y_%m_%d_%I_%M_%S"))
     behavior_output_directory = os.path.join(ps.output_directory, time, "behaviors")
     counts_output_directory = os.path.join(ps.output_directory, time, "counts")
 
-    print(behavior_output_directory
-    )
     os.makedirs(behavior_output_directory, exist_ok=True)
     os.makedirs(counts_output_directory, exist_ok=True)
 

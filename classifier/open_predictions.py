@@ -1,10 +1,8 @@
 import argparse
 import numpy as np
 from numpy.lib.npyio import NpzFile
-from numpy import nan_to_num
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from pandas import DataFrame
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import label_binarize
 from sklearn.metrics import (
@@ -29,7 +27,7 @@ def initialize_arg_parser():
     parser.add_argument(
         "--input_file",
         help="Path to the input file.",
-        default="/Users/josephgmaa/pyuoi/pyuoi/data/features/saved_runs/20220208-154256.nolj_Recording_day7_overnight_636674151185633714_5_nolj.c3d.1851.features.netcdf.npy",
+        default="/Users/josephgmaa/pyuoi/pyuoi/data/features/nolj_Recording_day7_overnight_636674151185633714_5_nolj.c3d.1851.features.netcdf",
     )
     parser.add_argument("--key", help="Key for reading JSON keys", default="coef_")
     parser.add_argument(
