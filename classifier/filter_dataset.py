@@ -20,15 +20,14 @@ def initialize_arg_parser():
 
 def downsample_dataframe(dataframe_to_downsample: pd.DataFrame) -> pd.DataFrame:
     """
-    Downsamples a dataframe class on the column "behavior_name", reducing the highest count class to that of the second highest count class.
+    Downsamples a dataframe class on the column "behavior_name", reducing the highest count class to that of the second highest count class. Assumes that the number of unique behavior names is greater than one.
     """
+    assert len(pd.unique(dataframe_to_downsample["behavior_name"])) > 1, "The number of behaviors must be greater than one."
+
     # The mapping is always sorted in descending order
     mapping_sorted_behavior_to_counts = dataframe_to_downsample["behavior_name"].value_counts().to_dict()
 
     counts = list(mapping_sorted_behavior_to_counts.values())
-    if len(counts) > 1:
-        logging.error("Downsample only when multiple behaviors are present.")
-        return dataframe_to_downsample
     majority_class = next(iter(mapping_sorted_behavior_to_counts))
     count_downsample_majority_class = counts[0] - counts[1]
 
@@ -51,7 +50,8 @@ def main():
         df = xr.load_dataset(os.path.join(ps.input_directory, 
         behavior_netcdf_file), engine="h5netcdf").to_dataframe()
 
-        df = downsample_dataframe(dataframe_to_downsample=df)
+        if len(pd.unique(df["behavior_name"])) > 1:
+            df = downsample_dataframe(dataframe_to_downsample=df)
 
         # Write the downsampled dataset to the output directory.
         xr.Dataset(df).to_netcdf(os.path.join(ps.output_directory, behavior_netcdf_file), engine="h5netcdf")
