@@ -5,6 +5,7 @@ import numpy as np
 from tqdm import tqdm
 import xarray as xr
 import pandas as pd
+import logging
 
 def initialize_arg_parser():
     parser = argparse.ArgumentParser(description="Generate compiled dataset.")
@@ -25,7 +26,9 @@ def downsample_dataframe(dataframe_to_downsample: pd.DataFrame) -> pd.DataFrame:
     mapping_sorted_behavior_to_counts = dataframe_to_downsample["behavior_name"].value_counts().to_dict()
 
     counts = list(mapping_sorted_behavior_to_counts.values())
-    assert len(counts) > 1, "Downsample only when multiple behaviors are present."
+    if len(counts) > 1:
+        logging.error("Downsample only when multiple behaviors are present.")
+        return dataframe_to_downsample
     majority_class = next(iter(mapping_sorted_behavior_to_counts))
     count_downsample_majority_class = counts[0] - counts[1]
 
@@ -36,9 +39,7 @@ def downsample_dataframe(dataframe_to_downsample: pd.DataFrame) -> pd.DataFrame:
     negative_indices_mask = indices[:count_downsample_majority_class]
     downsampled = dataframe_to_downsample.drop(index=negative_indices_mask)
 
-    return downsampled
-
-        
+    return downsampled       
 
 def main():
     parser = initialize_arg_parser()
