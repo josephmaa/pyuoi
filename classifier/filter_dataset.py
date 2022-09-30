@@ -46,15 +46,19 @@ def main():
     os.makedirs(ps.output_directory, exist_ok=True)
 
     for behavior_netcdf_file in tqdm(os.listdir(ps.input_directory)):
+        input_file_full_path = os.path.join(ps.input_directory, 
+        behavior_netcdf_file)
+        # Skip directories
+        if not os.path.isfile(input_file_full_path) or not input_file_full_path.endswith(".netcdf"):
+            continue
         # Load the dataset.
-        df = xr.load_dataset(os.path.join(ps.input_directory, 
-        behavior_netcdf_file), engine="h5netcdf").to_dataframe()
+        df = xr.load_dataset(input_file_full_path, engine="h5netcdf").to_dataframe()
 
         if len(pd.unique(df["behavior_name"])) > 1:
             df = downsample_dataframe(dataframe_to_downsample=df)
 
         # Write the downsampled dataset to the output directory.
-        xr.Dataset(df).to_netcdf(os.path.join(ps.output_directory, behavior_netcdf_file), engine="h5netcdf")
+        xr.Dataset(df).to_netcdf(input_file_full_path, engine="h5netcdf")
 
 
 if __name__ == "__main__":
