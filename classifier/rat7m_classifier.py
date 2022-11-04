@@ -7,6 +7,7 @@ from pyuoi.utils import (
     dump_json,
     generate_timestamp_filename,
 )
+from env import DB_FILE_PATH
 from scipy.special import rel_entr
 from scipy.spatial.distance import jensenshannon
 from pyuoi.datasets import make_classification
@@ -18,6 +19,7 @@ import numpy as np
 import pandas as pd
 import argparse
 import sys
+import sqlite3
 
 
 def absolute_file_paths(directory):
@@ -68,6 +70,12 @@ def initialize_arg_parser():
         type=bool,
     )
     parser.add_argument(
+        "--use_small_database",
+        help="Whether to use a small database for debugging",
+        default=False,
+        type=bool,
+    )
+    parser.add_argument(
         "--grid_search",
         help="Grid search through all the netcdfs in the directory. Takes the first 5 columns as values to automate the search.",
         default="/Users/josephgmaa/pyuoi/pyuoi/data/features/PCs/",
@@ -109,6 +117,13 @@ def main(parsed_args: argparse.Namespace):
         x_train, x_test, y_train, y_test = train_test_split(
             x, y, random_state=parsed_args.training_seed
         )
+    elif parsed_args.use_small_database:
+        conn = sqlite3.connect(DB_FILE_PATH)
+        df = pd.read_sql(DB_FILE_PATH, conn)
+
+        print(df)
+
+
     elif parsed_args.grid_search:
         # Load all netcdfs into dataframes from the parent directory.
         pc_netcdfs = [
