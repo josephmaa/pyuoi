@@ -4,3 +4,4 @@ On the remote node, run
 2. `conda install pip`
 3. `pip install -r requirements.txt`
 4. `conda install -c anaconda git`
+5. `pip install -e .`
