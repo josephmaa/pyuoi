@@ -19,6 +19,7 @@ import numpy as np
 from .base import AbstractUoIGeneralizedLinearRegressor
 from ..utils import sigmoid, softmax
 from ..lbfgs import fmin_lbfgs, AllZeroLBFGSError
+from typing import Optional
 
 
 class UoI_L1Logistic(AbstractUoIGeneralizedLinearRegressor, LogisticRegression):
@@ -149,6 +150,7 @@ class UoI_L1Logistic(AbstractUoIGeneralizedLinearRegressor, LogisticRegression):
             fit_intercept=fit_intercept,
             max_iter=max_iter,
             tol=tol)
+        self.label_encoder: Optional[LabelEncoder] = None
 
     def get_reg_params(self, X, y):
         input_dim = X.shape[1]
@@ -200,6 +202,7 @@ class UoI_L1Logistic(AbstractUoIGeneralizedLinearRegressor, LogisticRegression):
     def _pre_fit(self, X, y):
         X, y = super()._pre_fit(X, y)
         le = LabelEncoder()
+        self.label_encoder = le
         y = le.fit_transform(y)
         self.classes_ = le.classes_
         if self.classes_.size > 2:
