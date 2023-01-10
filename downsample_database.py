@@ -7,7 +7,7 @@ import argparse
 
 def database_to_dataframe(input_db_file_path: str):
     """
-    Transforms a SQL database to a pandas dataframe..
+    Transforms a SQL database to a pandas dataframe.
     """
     # Connect to the existing SQL database file.
     conn = sqlite3.connect(input_db_file_path)
@@ -26,7 +26,8 @@ def database_to_dataframe(input_db_file_path: str):
     print(f"Script took {end-start} seconds to run.")
 
     df = pd.DataFrame(sql_query)
-    print(df.head(n=5))
+    
+    return df
 
 
 def create_downsampled_database(input_db_file_path: str, num_rows: int) -> None:
@@ -68,7 +69,8 @@ def main():
     parser.add_argument(
         "--num_rows",
         help="The final number of rows to downsample the SQL database to.",
-        type=float,
+        type=int,
+        default=0,
     )
     args = parser.parse_args()
     downsample_database(database_path=args.database_path, num_rows=int(args.num_rows))

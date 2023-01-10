@@ -15,7 +15,7 @@ def main():
         database_sizes_file_reader = csv.reader(database_sizes_file, delimiter=",")
         for row in database_sizes_file_reader:
             for database_size in row:
-                downsample_database(database_path=args.database_path, num_rows=database_size)
+                downsample_database(database_path=args.database_path, num_rows=int(database_size))
 
 
 if __name__ == "__main__":
