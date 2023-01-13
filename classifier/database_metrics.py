@@ -13,7 +13,9 @@ def generate_sql_database_distribution(path_to_database: str):
     # Connect the existing database to the file.
     conn = sqlite3.connect(path_to_database)
     cur = conn.cursor()
-    cur.execute(f"SELECT behavior_name, COUNT(*) FROM features GROUP BY behavior_name")
+    cur.execute(
+        f"SELECT behavior_name, COUNT(*) FROM ShuffledDownSampled GROUP BY behavior_name"
+    )
 
     result = cur.fetchall()
     conn.close()
