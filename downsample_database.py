@@ -26,7 +26,7 @@ def database_to_dataframe(input_db_file_path: str):
     print(f"Script took {end-start} seconds to run.")
 
     df = pd.DataFrame(sql_query)
-    
+
     return df
 
 
@@ -51,17 +51,19 @@ def create_downsampled_database(input_db_file_path: str, num_rows: int) -> None:
 
     # Create a new table called features that has the selected number of rows.
     cur.execute(
-        f"CREATE TABLE features AS SELECT * FROM TEST.features LIMIT {num_rows}"
+        f"CREATE TABLE ShuffledDownSampled AS SELECT * FROM TEST.ShuffledDownSampled LIMIT {num_rows}"
     )
 
     # TODO(Joseph): Use the logging module to add a log entry to an output directory.
     print(f"Output SQL database created with {num_rows} rows.")
+
 
 def downsample_database(database_path: str, num_rows: int):
     create_downsampled_database(
         input_db_file_path=database_path,
         num_rows=num_rows,
     )
+
 
 def main():
     parser = argparse.ArgumentParser()
